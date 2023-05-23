@@ -15,6 +15,10 @@ namespace ServeImages
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Logging
+                .AddConfiguration(builder.Configuration.GetSection("Logging"))
+                .AddFile("mylog.log");
+
             builder.Services.AddOptions<RestrictedDirectoriesOptions>()
                 .Configure((opt) =>
                 {
