@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "removeComments": true,
+    "module": "AMD",
+    "sourceMap": true,
+    "target": "ES6",
+    "outFile": "wwwroot/dist/App.js"
+  },
+  "files": [ "ClientApp/SiApp.ts" ],
+  "compileOnSave": true
+}
