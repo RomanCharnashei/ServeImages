@@ -16,4 +16,4 @@
 import './SirDashboard';
 import SiDashboard from './SirDashboard';
 
-это потому что встроенная разбивка на модули в транспайлере не понимает что это (import SiDashboard from './SirDashboard';) модуль и пэтому приходиться явно указывать что есть зависимость на файл (import './SiPicture';)
+это потому что встроенная разбивка на модули в транспайлере не понимает что это (import SiDashboard from './SirDashboard';) модуль и пэтому приходиться явно указывать что есть зависимость на файл (import './SirDashboard';)
