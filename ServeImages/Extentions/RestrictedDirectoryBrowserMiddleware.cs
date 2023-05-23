@@ -1,10 +1,8 @@
-﻿using System.Linq;
-using System.Text.Encodings.Web;
+﻿using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
-using ServeImages.Common;
 
 namespace ServeImages.Extentions
 {
@@ -90,21 +88,6 @@ namespace ServeImages.Extentions
                 (!x.IsDirectory && _allowedExtentions.Contains(Path.GetExtension(x.PhysicalPath))));
 
             return fullContents.Exists;
-        }
-
-        private bool IsSatisfiesExtention(PathString subpath)
-        {
-            if (Path.HasExtension(subpath.Value))
-            {
-                return _allowedExtentions.Contains(Path.GetExtension(subpath.Value));
-            }
-
-            return true;
-        }
-
-        private bool IsSatisfiesPath(PathString subpath)
-        {
-            return !Path.IsPathFullyQualified(subpath) && !_forbiddenPaths.Any(subpath.Value!.StartsWith);
         }
 
         private bool IsGetOrHeadMethod(string method)
