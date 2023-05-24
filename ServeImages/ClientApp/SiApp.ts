@@ -1,6 +1,6 @@
 ﻿import './SirDashboard';
-import './SiPicture';
 import SiDashboard from './SirDashboard';
+import './SiPicture';
 import { ApiResponse } from './ApiResponse';
 import DirectoryInfo from './DirectoryInfo';
 
