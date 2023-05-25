@@ -24,7 +24,7 @@ namespace ServeImages.Extentions
             var httpContext = _contextAccessor.HttpContext;
             var path = httpContext!.Request.Path;
 
-            if (path.StartsWithSegments(_options.RequestPath, out var subpath))
+            if (path.StartsWithSegments(_options.ApiRequestPath, out var subpath))
             {
                 if (!Path.IsPathFullyQualified(subpath) && !_restrictedOptions.Directories.Any(subpath.Value!.StartsWith))
                 {

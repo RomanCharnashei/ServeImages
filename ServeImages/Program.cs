@@ -6,6 +6,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using ServeImages.Common;
 using ServeImages.Extentions;
+using ServeImages.Services.DirectoriesBrowse;
 
 namespace ServeImages
 {
@@ -50,31 +51,44 @@ namespace ServeImages
 
             builder.Services.AddHttpContextAccessor();
 
+            builder.Services.AddSingleton((services) =>
+            {
+                var options = services.GetRequiredService<IOptions<ImagesDirectoryBrowserOptions>>().Value;
+                return new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), options.SourceFolder));
+            });
+
+            builder.Services.AddScoped<IDirectoriesBrowseHandler, DirectoriesBrowseHandler>();
+
             builder.Services.AddSingleton<IAuthorizationHandler, RestrictedDirectoriesRequirementHandler>();
 
             builder.Services.AddAuthorization(options => 
             {
-                var directoriesRequirement = new RestrictedDirectoriesRequirement();
-                options.AddPolicy("IsRestrictedDirectories", r => r.AddRequirements(directoriesRequirement));
                 options.FallbackPolicy = new AuthorizationPolicyBuilder()
-                    .AddRequirements(directoriesRequirement)
+                    .AddRequirements(new RestrictedDirectoriesRequirement())
                     .Build();
             });
+
+            builder.Services.AddControllers();
 
             var app = builder.Build();
 
             app.UseCustomExceptionHandler();
 
-            // Configure the HTTP request pipeline.
-
             app.UseDefaultFiles();
+
             app.UseStaticFiles();
 
             app.UseAuthorization();
 
-            app.UseImagesDirectoryBrowser();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = app.Services.GetRequiredService<PhysicalFileProvider>(),
+                RequestPath = app.Services
+                    .GetRequiredService<IOptions<ImagesDirectoryBrowserOptions>>()
+                    .Value.StaticRequestPath
+            });
 
-            // app.MapControllers();
+            app.MapControllers();
 
             app.Run();
         }

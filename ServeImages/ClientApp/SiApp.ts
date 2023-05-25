@@ -88,7 +88,7 @@ class SiApp extends HTMLElement {
 
     openImageHandler(e: CustomEvent) {
         let picture = document.createElement('si-picture');
-        picture.setAttribute('path', this.buildPath() + '/' + e.detail.selectedFile);
+        picture.setAttribute('path', this.buildFilePath(e.detail.selectedFile));
         picture.setAttribute('file', e.detail.selectedFile);
         let toRemove = this.shadowRoot.querySelector('si-picture');
         if (toRemove) {
@@ -99,29 +99,42 @@ class SiApp extends HTMLElement {
 
     returnFromDirectoryHandler(e: CustomEvent) {
         this.directoryContext.pop();
-        this.fetchData();
+        this.fetchDirectories();
     }
 
     goToDirectoryHandler(e: CustomEvent) {
         this.directoryContext.push(e.detail.selectedDirectory);
-        this.fetchData();
+        this.fetchDirectories();
     }
 
     connectedCallback() {
-        this.fetchData();
+        this.fetchDirectories();
     }
 
-    buildPath(): string {
-        return `/api/images/${this.directoryContext.join('/')}`;
+    buildFolderPath(): string {
+        return `/api/images/${this.directoryContext.join('/')}?${new URLSearchParams({ limit: this.requestCountLimit.toString() })}`;
     }
 
-    async fetchData() {
-        this.switchLoader();
-        let response = await fetch(this.buildPath() + '?' + new URLSearchParams({ limit: this.requestCountLimit.toString() }));
-        let data = await response.json() as ApiResponse;
-        this.dashboard.folders =
-            [...data.directories.map(x => new DirectoryInfo(x.Name, true)), ...data.files.map(x => new DirectoryInfo(x.Name, false))];
-        this.switchLoader();
+    buildFilePath(file: string): string {
+        return `/images/${this.directoryContext.join('/')}/${file}`;
+    }
+
+    async fetchDirectories() {
+        try {
+            this.switchLoader();
+            console.log(this.buildFolderPath());
+            let response = await fetch(this.buildFolderPath());
+            if (!response.ok) {
+                throw new Error('Request failed.');
+            }
+            let data = await response.json() as ApiResponse;
+            this.dashboard.folders =
+                [...data.directories.map(x => new DirectoryInfo(x.name, true)), ...data.files.map(x => new DirectoryInfo(x.name, false))];
+            this.switchLoader();
+        } catch (e) {
+            this.switchLoader();
+            console.log(e);
+        };
     }
 }
 customElements.define('si-app', SiApp);

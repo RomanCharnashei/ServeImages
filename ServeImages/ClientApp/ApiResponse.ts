@@ -1,10 +1,10 @@
 ﻿export type ApiResponse = {
     directories: Array<{
-        Name: string
+        name: string
     }>,
     files: Array<{
-        Name: string,
-        Extension: string,
-        Length: number
+        name: string,
+        extension: string,
+        length: number
     }>
 }
