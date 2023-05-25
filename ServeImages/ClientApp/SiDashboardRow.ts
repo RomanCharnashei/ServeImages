@@ -25,6 +25,11 @@ template.innerHTML = `
 
         .folder__name-link:hover {
             cursor: pointer;
+            text-decoration: none;
+        }
+
+        .folder__name-link_active {
+            text-decoration: underline;
         }
     </style>
     <div class="folder__number"></div>
@@ -35,7 +40,7 @@ template.innerHTML = `
 
 class SiDashboardRow extends HTMLElement {
     static get observedAttributes() {
-        return ['name', 'order'];
+        return ['name', 'order', 'is-active'];
     }
 
     private folderNumberElement: HTMLDivElement;
@@ -80,6 +85,14 @@ class SiDashboardRow extends HTMLElement {
         return this.getAttribute('is-directory') === "true";
     }
 
+    get isActive(): boolean {
+        return this.getAttribute('is-active') === "true";
+    }
+
+    set isActive(value: boolean) {
+        this.setAttribute('is-active', value.toString());
+    }
+
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         switch (name) {
             case 'order':
@@ -87,6 +100,13 @@ class SiDashboardRow extends HTMLElement {
                 break;
             case 'name':
                 this.folderNameElement.innerText = newValue;
+                break;
+            case 'is-active':
+                if (newValue === 'true') {
+                    this.folderNameElement.classList.add('folder__name-link_active');
+                } else {
+                    this.folderNameElement.classList.remove('folder__name-link_active');
+                }
                 break;
         }
     }

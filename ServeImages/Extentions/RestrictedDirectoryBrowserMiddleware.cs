@@ -1,4 +1,5 @@
-﻿using System.Text.Encodings.Web;
+﻿using System.Linq;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
@@ -48,11 +49,17 @@ namespace ServeImages.Extentions
         /// <returns></returns>
         public Task Invoke(HttpContext context)
         {
+            int? limit = null;
+            if (context.Request.Query.Any(x => x.Key == "limit"))
+            {
+                limit = int.Parse(context.Request.Query["limit"].ToString());
+            };
+
             // Check if the URL matches any expected paths, skip if an endpoint with a request delegate was selected
             if (context.GetEndpoint()?.RequestDelegate is null
                 && IsGetOrHeadMethod(context.Request.Method)
                 && TryMatchPath(context, subpath: out var subpath)
-                && TryGetDirectoryInfo(subpath, out var contents))
+                && TryGetDirectoryInfo(subpath, limit, out var contents))
             {
                 // If the path matches a directory but does not end in a slash, redirect to add the slash.
                 // This prevents relative links from breaking.
@@ -63,13 +70,12 @@ namespace ServeImages.Extentions
                 }
 
                 return _formatter.GenerateContentAsync(context, contents);
-
             }
 
             return _next(context);
         }
 
-        private bool TryGetDirectoryInfo(PathString subpath, out IEnumerable<IFileInfo> contents)
+        private bool TryGetDirectoryInfo(PathString subpath, int? queryLmit, out IEnumerable<IFileInfo> contents)
         {
             // TryMatchPath will not output an empty subpath when it returns true. This is called only in that case.
             var fullContents = _fileProvider.GetDirectoryContents(subpath.Value!);
@@ -79,13 +85,18 @@ namespace ServeImages.Extentions
                 .Any(e => x.PhysicalPath!
                     .Substring(_fileProvider.Root.Length - 1)
                     .Replace(Path.DirectorySeparatorChar, '/')
-                    .StartsWith(e)   
+                    .StartsWith(e)
                     )
                 );
 
             // Leave only allowed files
             contents = contents.Where(x => x.IsDirectory ||
                 (!x.IsDirectory && _allowedExtentions.Contains(Path.GetExtension(x.PhysicalPath))));
+
+            if (queryLmit.HasValue)
+            {
+                contents = contents.Take(queryLmit.Value);
+            }
 
             return fullContents.Exists;
         }

@@ -1,4 +1,5 @@
 ﻿import './SiDashboardRow';
+import SiDashboardRow from './SiDashboardRow';
 import DirectoryInfo from './DirectoryInfo';
 
 const template = document.createElement('template');
@@ -57,10 +58,14 @@ template.innerHTML = `
   `;
 
 class SiDashboard extends HTMLElement {
+
+    private rowElements: SiDashboardRow[];
+
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: 'open' });
         this.shadowRoot.appendChild(template.content.cloneNode(true));
+        this.rowElements = [];
         this.shadowRoot.querySelector('.back-link')
             .addEventListener('click', (e) => {
                 e.preventDefault();
@@ -70,25 +75,38 @@ class SiDashboard extends HTMLElement {
                 });
                 shadow.dispatchEvent(customEvent);
             });
+        this.addEventListener('openimage', this.setActiveRow.bind(this));
+    }
+
+    setActiveRow(e: CustomEvent) {
+        this.rowElements
+            .filter((el) => el.isActive)
+            .forEach((el) => el.isActive = false);
+
+        this.rowElements
+            .find(el => el.name === e.detail.selectedFile)
+            .isActive = true;
     }
 
     set folders(newRows: DirectoryInfo[]) {
-        const rows = this.shadowRoot.querySelectorAll('si-dashboard-row');
-        const rowLength = rows.length;
-        const newRowsLength = newRows.length;
+        this.rowElements.forEach((rowEl) => {
+            this.shadowRoot.removeChild(rowEl);
+        });
 
-        for (var i = 0; i < rowLength; i++) {
-            this.shadowRoot.removeChild(rows[i]);
-        }
-
-        for (var i = 0; i < newRowsLength; i++) {
-            let row = document.createElement('si-dashboard-row');
+        this.rowElements = newRows.map((dir: DirectoryInfo, index: number) => {
+            let row = document.createElement('si-dashboard-row') as SiDashboardRow;
             row.setAttribute('class', 'folder');
-            row.setAttribute('order', (i + 1).toString());
-            row.setAttribute('name', newRows[i].Name);
-            row.setAttribute('is-directory', newRows[i].IsDirectory.toString());
-            this.shadowRoot.appendChild(row);
-        }
+            row.setAttribute('order', (index + 1).toString());
+            row.setAttribute('name', dir.Name);
+            row.setAttribute('is-directory', dir.IsDirectory.toString());
+            row.setAttribute('is-active', false.toString());
+
+            return row;
+        });
+
+        this.rowElements.forEach((rowEl) => {
+            this.shadowRoot.appendChild(rowEl);
+        });
     }
 }
 
